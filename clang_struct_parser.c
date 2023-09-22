@@ -1,69 +1,83 @@
 #include <iostream>
 #include <clang-c/Index.h>
 
-void PrintStructMembers(CXCursor cursor) {
+void visit_struct_member(CXCursor cursor)
+{
     if (clang_getCursorKind(cursor) != CXCursor_FieldDecl) {
         return; // Skip non-field declarations
     }
 
-    CXString fieldName = clang_getCursorSpelling(cursor);
-    CXType fieldType = clang_getCursorType(cursor);
-    CXString fieldTypeStr = clang_getTypeSpelling(fieldType);
+    CXString field_name = clang_getCursorSpelling(cursor);
+	const char * const field_name_cstr = clang_getCString(field_name);
 
-    std::cout << "Field Name: " << clang_getCString(fieldName) << "\n";
-    std::cout << "Field Type: " << clang_getCString(fieldTypeStr) << "\n\n";
-
-    clang_disposeString(fieldName);
-    clang_disposeString(fieldTypeStr);
+	CXType field_type = clang_getCursorType(cursor);
+	CXString field_type_str = clang_getTypeSpelling(field_type);
+	const char * const field_type_cstr = clang_getCString(field_type_str);
+	
+	std::cout << field_type.kind << " " << field_name_cstr << "();" << std::endl;
+    
+    clang_disposeString(field_name);
+    clang_disposeString(field_type_str);
 }
 
-void VisitStruct(CXCursor cursor) {
-    if (clang_getCursorKind(cursor) == CXCursor_StructDecl) {
-        CXString structName = clang_getCursorSpelling(cursor);
-        std::cout << "Struct Name: " << clang_getCString(structName) << "\n\n";
-        clang_disposeString(structName);
-
+void visit_struct_declaration(CXCursor cursor)
+{
+    if (CXCursor_StructDecl == clang_getCursorKind(cursor)) {
+        CXString struct_name = clang_getCursorSpelling(cursor);
+		const char * const struct_name_cstr = clang_getCString(struct_name);
+		std::cout << struct_name_cstr << "{" << std::endl;
         // Visit the struct's children to find its members
-        clang_visitChildren(cursor, [](CXCursor child, CXCursor parent, CXClientData data) {
-            PrintStructMembers(child);
-            return CXChildVisit_Continue;
-        }, nullptr);
+        clang_visitChildren(cursor,
+							[](CXCursor child, CXCursor parent, CXClientData data)
+							{
+								visit_struct_member(child);
+								return CXChildVisit_Continue;
+							},
+							nullptr);
+		std::cout << "} //" << struct_name_cstr << std::endl;
+		clang_disposeString(struct_name);
     }
 }
 
-int main(int argc, char **argv) {
-    // Initialize libclang
-    CXIndex index = clang_createIndex(0, 0);
+int main(int argc, char **argv)
+{
+	if(argc != 2) {
+		std::cerr << "Usage:" << argv[0] << " filename" <<std::endl;
+		return 2;
+	}
+    CXIndex clang_index = clang_createIndex(0, 0);
 
-    // Parse a C source file
-    const char* sourceFile = argv[1];
-    const char* compileArgs[] =
+    const char* source_file = argv[1];
+    const char* compile_args[] =
 		{
 			"-I/usr/noincludeyet"
 		}; // Include directories
-    int numArgs = sizeof(compileArgs) / sizeof(compileArgs[0]);
+    int num_args = sizeof(compile_args) / sizeof(compile_args[0]);
 
-    CXTranslationUnit translationUnit = clang_parseTranslationUnit(index,
-																   sourceFile,
-																   compileArgs,
-																   numArgs,
+    CXTranslationUnit translation_unit = clang_parseTranslationUnit(clang_index,
+																   source_file,
+																   compile_args,
+																   num_args,
 																   nullptr,
 																   0,
 																   CXTranslationUnit_None);
 
-    if (!translationUnit) {
+    if (!translation_unit) {
         std::cerr << "Error parsing the source file." << std::endl;
+		clang_disposeIndex(clang_index);
         return 1;
     }
 
-    // Visit the translation unit's cursor to find structs
-    clang_visitChildren(clang_getTranslationUnitCursor(translationUnit),
-						[](CXCursor cursor, CXCursor parent, CXClientData data) { VisitStruct(cursor); return CXChildVisit_Continue; },
+    clang_visitChildren(clang_getTranslationUnitCursor(translation_unit),
+						[](CXCursor cursor, CXCursor parent, CXClientData data)
+						{
+							visit_struct_declaration(cursor);
+							return CXChildVisit_Continue;
+						},
 						nullptr);
 
-    // Clean up
-    clang_disposeTranslationUnit(translationUnit);
-    clang_disposeIndex(index);
+    clang_disposeTranslationUnit(translation_unit);
+    clang_disposeIndex(clang_index);
 
     return 0;
 }
