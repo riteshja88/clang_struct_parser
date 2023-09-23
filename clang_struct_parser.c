@@ -168,7 +168,7 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 		if(nullptr != g_CXType_to_FunctionCallMapping[field_type_variable.kind]) {
 			CXString field_name = clang_getCursorSpelling(cursor);
 			const char * const field_name_cstr = clang_getCString(field_name);
-			
+		
 			std::cout << "\t";
 			std::cout << g_CXType_to_FunctionCallMapping[field_type_variable.kind];
 			if(CXType_Typedef == field_type_variable.kind) {
@@ -246,7 +246,6 @@ static CXChildVisitResult visitStructDecl(CXCursor cursor,
 		clang_disposeString(struct_name);
 		return CXChildVisit_Break;
 	}
-		   
 	std::cout << "} // json_marshal_" << struct_name_cstr << "()" << std::endl;
 	clang_disposeString(struct_name);
 	return CXChildVisit_Continue;
