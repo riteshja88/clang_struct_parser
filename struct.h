@@ -3,13 +3,19 @@ struct struct1_t {
 };
 typedef struct struct1_t struct1_t;
 struct ritesh_t {
-	//struct struct1_t s001;
+	struct1_t struct001 __attribute__((annotate("add-double-quotes")));
+	struct1_t *struct002 __attribute__((annotate("omit-empty")));
+	struct1_t struct003[12] __attribute__((annotate("omit-empty")));
+	struct1_t struct003_count __attribute__((annotate("no-marshal")));
+	struct1_t *struct004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	struct1_t struct004_count __attribute__((annotate("no-marshal")));
 
-	int int001 __attribute__((annotate("add-double-quotes")));
-	int *int002 __attribute__((annotate("omit-empty")));
-	int int003[11] __attribute__((annotate("omit-empty")));
+
+	int int001 __attribute__((annotate("add-double-quotes"))) __attribute__((annotate("json_field_alias:int001_alias")));
+	int *int002 __attribute__((annotate("omit-empty"))) __attribute__((annotate("json_field_alias:int002_alias")));;
+	int int003[11] __attribute__((annotate("omit-empty"))) __attribute__((annotate("json_field_alias:int003_alias")));;
 	int int003_count __attribute__((annotate("no-marshal")));
-	int *int004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	int *int004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty"))) __attribute__((annotate("json_field_alias:int004_alias")));;
 	int int004_count __attribute__((annotate("no-marshal")));
 
 	long long001 __attribute__((annotate("add-double-quotes")));
