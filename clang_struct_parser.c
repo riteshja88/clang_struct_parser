@@ -235,8 +235,8 @@ static CXChildVisitResult visitStructDecl(CXCursor cursor,
 
 	CXString struct_name = clang_getCursorSpelling(cursor);
 	const char * const struct_name_cstr = clang_getCString(struct_name);
-	std::cout << "void json_marshal_" << struct_name_cstr << "(char **post_data_temp_ptr, const char key[], const struct " << struct_name_cstr << " *value, int *precede_by_comma);" << std::endl; // function declaration
-	std::cout << "void json_marshal_" << struct_name_cstr << "(char ** const post_data_temp_ptr, const char key[], const struct " << struct_name_cstr << " * const value, int * const precede_by_comma)" << std::endl; // function definition
+	std::cout << "void json_marshal_" << struct_name_cstr << "(char **post_data_temp_ptr, const char key[], const struct " << struct_name_cstr << " *value, int *precede_by_comma, int bitmap_field_annotation_attribute);" << std::endl; // function declaration
+	std::cout << "void json_marshal_" << struct_name_cstr << "(char ** const post_data_temp_ptr, const char key[], const struct " << struct_name_cstr << " * const value, int * const precede_by_comma, const int bitmap_field_annotation_attribute)" << std::endl; // function definition
 	std::cout << "{" << std::endl;
 	// Visit the struct's children to find its members
 	const int rc = clang_visitChildren(cursor,
