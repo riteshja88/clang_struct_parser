@@ -1,20 +1,62 @@
+struct struct1_t {
+	int x;
+};
+typedef struct struct1_t struct1_t;
 struct ritesh_t {
-	int int001;
+	//struct struct1_t s001;
+
+	int int001 __attribute__((annotate("add-double-quotes")));
 	int *int002 __attribute__((annotate("omit-empty")));
 	int int003[11] __attribute__((annotate("omit-empty")));
 	int int003_count __attribute__((annotate("no-marshal")));
 	int *int004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
 	int int004_count __attribute__((annotate("no-marshal")));
 
-	long long001;
+	long long001 __attribute__((annotate("add-double-quotes")));
 	long *long002 __attribute__((annotate("omit-empty")));
-	long long003[11] __attribute__((annotate("omit-empty")));
+	long long003[12] __attribute__((annotate("omit-empty")));
 	long long003_count __attribute__((annotate("no-marshal")));
 	long *long004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
 	long long004_count __attribute__((annotate("no-marshal")));
+
+	long long longlong001 __attribute__((annotate("add-double-quotes")));
+	long long *longlong002 __attribute__((annotate("omit-empty")));
+	long long longlong003[12] __attribute__((annotate("omit-empty")));
+	long long longlong003_count __attribute__((annotate("no-marshal")));
+	long long *longlong004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	long long longlong004_count __attribute__((annotate("no-marshal")));
+
+	float float001 __attribute__((annotate("add-double-quotes")));
+	float *float002 __attribute__((annotate("omit-empty")));
+	float float003[11] __attribute__((annotate("omit-empty")));
+	float float003_count __attribute__((annotate("no-marshal")));
+	float *float004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	float float004_count __attribute__((annotate("no-marshal")));
+
+	double double001 __attribute__((annotate("add-double-quotes")));
+	double *double002 __attribute__((annotate("omit-empty")));
+	double double003[11] __attribute__((annotate("omit-empty")));
+	double double003_count __attribute__((annotate("no-marshal")));
+	double *double004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	double double004_count __attribute__((annotate("no-marshal")));
+
+	long double longdouble001 __attribute__((annotate("add-double-quotes")));
+	long double *longdouble002 __attribute__((annotate("omit-empty")));
+	long double longdouble003[11] __attribute__((annotate("omit-empty")));
+	long double longdouble003_count __attribute__((annotate("no-marshal")));
+	long double *longdouble004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	long double longdouble004_count __attribute__((annotate("no-marshal")));
+
+	int bool001 __attribute__((annotate("boolean"))) __attribute__((annotate("add-double-quotes")));
+	int *bool002 __attribute__((annotate("boolean"))) __attribute__((annotate("omit-empty")));
+	int bool003[11] __attribute__((annotate("boolean"))) __attribute__((annotate("omit-empty")));
+	int bool003_count __attribute__((annotate("boolean"))) __attribute__((annotate("no-marshal")));
+	int *bool004 __attribute__((annotate("boolean"))) __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
+	int bool004_count __attribute__((annotate("boolean"))) __attribute__((annotate("no-marshal")));
 };
 typedef struct ritesh_t ritesh3_t;
 struct s0_t {
+	/*
 	unsigned char uchar;
 	unsigned short ushort;
 	unsigned int uint;
@@ -28,6 +70,7 @@ struct s0_t {
 	long long _longlong;
 	float _float;
 	double _double;
+	*/
 	struct ritesh_t struct_ritesh;
 	ritesh3_t struct_ritesh3;
 
