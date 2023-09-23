@@ -9,12 +9,14 @@ static void init_g_CXType_to_FunctionCallMapping() {
 		g_CXType_to_FunctionCallMapping[i] = nullptr;
 	}
 	g_CXType_to_FunctionCallMapping[CXType_Int] = "json_marshal_int";
+	g_CXType_to_FunctionCallMapping[CXType_Short] = "json_marshal_short";
 	g_CXType_to_FunctionCallMapping[CXType_Long] = "json_marshal_long";
 	g_CXType_to_FunctionCallMapping[CXType_LongLong] = "json_marshal_long_long";
 	g_CXType_to_FunctionCallMapping[CXType_Float] = "json_marshal_float";
 	g_CXType_to_FunctionCallMapping[CXType_Double] = "json_marshal_double";
 	g_CXType_to_FunctionCallMapping[CXType_LongDouble] = "json_marshal_long_double";
 	g_CXType_to_FunctionCallMapping[CXType_Typedef] = "json_marshal_"; /* name of struct type will get added to this prefix */
+	g_CXType_to_FunctionCallMapping[CXType_Char_S] = "json_marshal_char";
 }
 
 enum {
@@ -23,6 +25,8 @@ enum {
 	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_POINTER_TO_ARRAY = 2,
 	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_ADD_DOUBLE_QUOTES = 3,
 	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_BOOLEAN = 4,
+	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_ADD_DOUBLE_QUOTES = 5,
+	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_JSON_ESCAPE = 6,
 };
 
 typedef struct {
@@ -67,13 +71,21 @@ static CXChildVisitResult visitAnnotateAttr(CXCursor cursor,
 				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_ADD_DOUBLE_QUOTES);
 			break;
 		}
-
 		if(0 == strcmp("boolean", annotatin_cstr)) {
 			field_decl_annotation_info->bitmap_field_annotation_attribute |=
 				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_BOOLEAN);
 			break;
 		}
-
+		if(0 == strcmp("dont-add-double-quotes", annotatin_cstr)) {
+			field_decl_annotation_info->bitmap_field_annotation_attribute |=
+				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_ADD_DOUBLE_QUOTES);
+			break;
+		}
+		if(0 == strcmp("dont-json-escape", annotatin_cstr)) {
+			field_decl_annotation_info->bitmap_field_annotation_attribute |=
+				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_JSON_ESCAPE);
+			break;
+		}
 
 #define ANNOTATION_PREFIX "json_field_alias:"
 		if(0 == strncmp(ANNOTATION_PREFIX,

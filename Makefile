@@ -1,5 +1,6 @@
 all:
-	g++ -fsanitize=address -static-libasan  -g clang_struct_parser.c -I /usr/lib/llvm-6.0/include/ -L/usr/lib/llvm-6.0/lib/ -lclang -lLLVM 
+	g++ -fsanitize=address -static-libasan  -g clang_struct_parser.c -I /usr/lib/llvm-6.0/include/ -L/usr/lib/llvm-6.0/lib/ -lclang -lLLVM
+	gcc -c struct.h -Wno-attributes
 	./a.out struct.h
 
 clean:
