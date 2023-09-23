@@ -10,7 +10,6 @@ struct ritesh_t {
 	struct1_t *struct004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
 	struct1_t struct004_count __attribute__((annotate("no-marshal")));
 
-
 	int int001 __attribute__((annotate("add-double-quotes"))) __attribute__((annotate("json_field_alias:int001_alias")));
 	int *int002 __attribute__((annotate("omit-empty"))) __attribute__((annotate("json_field_alias:int002_alias")));;
 	int int003[11] __attribute__((annotate("omit-empty"))) __attribute__((annotate("json_field_alias:int003_alias")));;

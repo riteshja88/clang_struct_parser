@@ -94,18 +94,11 @@ static CXChildVisitResult visitAnnotateAttr(CXCursor cursor,
 
 typedef enum {
 	FIELD_DECL_TYPE_UNKNOWN = -1,
+	FIELD_DECL_TYPE_VARIABLE = 0,
+	FIELD_DECL_TYPE_POINTER_TO_VARIABLE = 1,
+	FIELD_DECL_TYPE_VARIABLE_ARRAY = 2,
+	FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY = 3,
 
-	/* primitive */
-	FIELD_DECL_TYPE_PRIMITIVE = 0,
-	FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE = 1,
-	FIELD_DECL_TYPE_PRIMITIVE_ARRAY = 2,
-	FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE_ARRAY = 3,
-
-	/* struct */
-	FIELD_DECL_TYPE_STRUCT = 10,
-	FIELD_DECL_TYPE_POINTER_TO_STRUCT = 11,
-	FIELD_DECL_TYPE_STRUCT_ARRAY = 12,
-	FIELD_DECL_TYPE_POINTER_TO_STRUCT_ARRAY = 13,
 } field_decl_type_t;
 
 
@@ -136,64 +129,44 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 		}
 
 		CXType field_type = clang_getCursorType(cursor);
-		CXType field_type_final = field_type;
+		CXType field_type_variable = field_type;
 		field_decl_type_t field_decl_type = FIELD_DECL_TYPE_UNKNOWN;
 		do {
 			if(CXType_ConstantArray == field_type.kind) {
-				field_type_final = clang_getArrayElementType(field_type);
-				if(CXType_Typedef == field_type_final.kind) {
-					field_decl_type = FIELD_DECL_TYPE_STRUCT_ARRAY;
-					break;
-				}
-				field_decl_type = FIELD_DECL_TYPE_PRIMITIVE_ARRAY;
+				field_type_variable = clang_getArrayElementType(field_type);
+				field_decl_type = FIELD_DECL_TYPE_VARIABLE_ARRAY;
 				break;
 			}
 
 			if(CXType_Pointer == field_type.kind) {
-				field_type_final = clang_getPointeeType(field_type);
+				field_type_variable = clang_getPointeeType(field_type);
 				if(0 != (field_decl_annotation_info.bitmap_field_annotation_attribute & (1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_POINTER_TO_ARRAY))) {
-					if(CXType_Typedef == field_type_final.kind) {
-						field_decl_type = FIELD_DECL_TYPE_POINTER_TO_STRUCT_ARRAY;
-						break;
-					}
-					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE_ARRAY;
+					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY;
 				}
 				else {
-					if(CXType_Typedef == field_type_final.kind) {
-						field_decl_type = FIELD_DECL_TYPE_POINTER_TO_STRUCT;
-						break;
-					}
-					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE;
+					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_VARIABLE;
 				}
 				break;
 			}
 
-			if(CXType_Typedef == field_type.kind) {
-				field_type_final = field_type;
-				field_decl_type = FIELD_DECL_TYPE_STRUCT;
-				break;
-			}
-
-			field_type_final = field_type;
-			field_decl_type = FIELD_DECL_TYPE_PRIMITIVE;
+			field_type_variable = field_type;
+			field_decl_type = FIELD_DECL_TYPE_VARIABLE;
 		} while(0);
 
-		if(nullptr != g_CXType_to_FunctionCallMapping[field_type_final.kind]) {
+		if(nullptr != g_CXType_to_FunctionCallMapping[field_type_variable.kind]) {
 			CXString field_name = clang_getCursorSpelling(cursor);
 			const char * const field_name_cstr = clang_getCString(field_name);
 			
 			std::cout << "\t";
-			std::cout << g_CXType_to_FunctionCallMapping[field_type_final.kind];
-			if(CXType_Typedef == field_type_final.kind) {
-				CXString field_type_name = clang_getTypeSpelling(field_type_final);
+			std::cout << g_CXType_to_FunctionCallMapping[field_type_variable.kind];
+			if(CXType_Typedef == field_type_variable.kind) {
+				CXString field_type_name = clang_getTypeSpelling(field_type_variable);
 				const char * const field_type_name_cstr = clang_getCString(field_type_name);
 				std::cout << field_type_name_cstr;
 				clang_disposeString(field_type_name);
 			}
-			if(FIELD_DECL_TYPE_PRIMITIVE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_STRUCT_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_POINTER_TO_STRUCT_ARRAY == field_decl_type) {
+			if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
+			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
 				std::cout << "_array";
 			}
 			std::cout << "("
@@ -206,22 +179,17 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 				std::cout << "\"" << field_decl_annotation_info.json_field_alias << "\", ";
 				free(field_decl_annotation_info.json_field_alias);
 			}
-			if(FIELD_DECL_TYPE_PRIMITIVE == field_decl_type ||
-			   FIELD_DECL_TYPE_STRUCT == field_decl_type) {
+			if(FIELD_DECL_TYPE_VARIABLE == field_decl_type) {
 				std::cout << "&";
 			}
 			std::cout << "value->"<< field_name_cstr << ", ";
-			if(FIELD_DECL_TYPE_PRIMITIVE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_STRUCT_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_POINTER_TO_STRUCT_ARRAY == field_decl_type) {
+			if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
+			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
 				std::cout << "value->"<< field_name_cstr << "_count, ";
-				if(FIELD_DECL_TYPE_PRIMITIVE_ARRAY == field_decl_type ||
-				   FIELD_DECL_TYPE_STRUCT_ARRAY == field_decl_type) {
+				if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type) {
 					std::cout << std::dec << clang_getArraySize(field_type) << ", ";
 				}
-				else if(FIELD_DECL_TYPE_POINTER_TO_PRIMITIVE_ARRAY == field_decl_type ||
-						FIELD_DECL_TYPE_POINTER_TO_STRUCT_ARRAY == field_decl_type) {
+				else if(FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
 					std::cout << std::dec << -1 << ", ";;
 				}
 			}
