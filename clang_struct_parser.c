@@ -159,8 +159,11 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 
 			if(CXType_Pointer == field_type.kind) {
 				field_type_variable = clang_getPointeeType(field_type);
-				std::cout<< std::dec<< field_type_variable.kind << std::endl;
-				if(0 != (field_decl_annotation_info.bitmap_field_annotation_attribute & (1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_POINTER_TO_ARRAY))) {
+				if(CXType_ConstantArray == field_type_variable.kind) {
+					field_type_variable = clang_getArrayElementType(field_type_variable);
+					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_VARIABLE_2D_ARRAY;
+				}
+				else if(0 != (field_decl_annotation_info.bitmap_field_annotation_attribute & (1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_POINTER_TO_ARRAY))) {
 					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY;
 				}
 				else {
@@ -191,7 +194,8 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 					std::cout << "_array";
 					break;
 				}
-				if(FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
+				if(FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type ||
+				   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_2D_ARRAY == field_decl_type) {
 					std::cout << "_2darray";
 					break;
 				}
@@ -210,19 +214,25 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 				CXType field_type_tmp = clang_getArrayElementType(field_type);
 				std::cout << std::dec << clang_getArraySize(field_type_tmp) << ", ";
 			}
-			if(FIELD_DECL_TYPE_VARIABLE == field_decl_type) {
+			else if(FIELD_DECL_TYPE_POINTER_TO_VARIABLE_2D_ARRAY == field_decl_type) {
+				CXType field_type_tmp = clang_getPointeeType(field_type);
+				std::cout << std::dec << clang_getArraySize(field_type_tmp) << ", ";
+			}
+			else if(FIELD_DECL_TYPE_VARIABLE == field_decl_type) {
 				std::cout << "&";
 			}
 			std::cout << "value->"<< field_name_cstr << ", ";
 			if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
 			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
+			   FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type ||
+			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_2D_ARRAY == field_decl_type) {
 				std::cout << "value->"<< field_name_cstr << "_count, ";
 				if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
 				   FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
 					std::cout << std::dec << clang_getArraySize(field_type) << ", ";
 				}
-				else if(FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
+				else if(FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type ||
+						FIELD_DECL_TYPE_POINTER_TO_VARIABLE_2D_ARRAY == field_decl_type) {
 					std::cout << std::dec << -1 << ", ";;
 				}
 			}
