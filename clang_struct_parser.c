@@ -110,7 +110,8 @@ typedef enum {
 	FIELD_DECL_TYPE_POINTER_TO_VARIABLE = 1,
 	FIELD_DECL_TYPE_VARIABLE_ARRAY = 2,
 	FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY = 3,
-
+	FIELD_DECL_TYPE_VARIABLE_2D_ARRAY = 4,
+	FIELD_DECL_TYPE_POINTER_TO_VARIABLE_2D_ARRAY = 5,
 } field_decl_type_t;
 
 
@@ -146,12 +147,19 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 		do {
 			if(CXType_ConstantArray == field_type.kind) {
 				field_type_variable = clang_getArrayElementType(field_type);
-				field_decl_type = FIELD_DECL_TYPE_VARIABLE_ARRAY;
+				if(CXType_ConstantArray == field_type_variable.kind) {
+					field_type_variable = clang_getArrayElementType(field_type_variable);
+					field_decl_type = FIELD_DECL_TYPE_VARIABLE_2D_ARRAY;
+				}
+				else {
+					field_decl_type = FIELD_DECL_TYPE_VARIABLE_ARRAY;
+				}
 				break;
 			}
 
 			if(CXType_Pointer == field_type.kind) {
 				field_type_variable = clang_getPointeeType(field_type);
+				std::cout<< std::dec<< field_type_variable.kind << std::endl;
 				if(0 != (field_decl_annotation_info.bitmap_field_annotation_attribute & (1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_POINTER_TO_ARRAY))) {
 					field_decl_type = FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY;
 				}
@@ -177,10 +185,17 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 				std::cout << field_type_name_cstr;
 				clang_disposeString(field_type_name);
 			}
-			if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
-				std::cout << "_array";
-			}
+			do {
+				if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
+				   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
+					std::cout << "_array";
+					break;
+				}
+				if(FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
+					std::cout << "_2darray";
+					break;
+				}
+			} while(0);
 			std::cout << "("
 					  << "post_data_temp_ptr, ";
 
@@ -191,14 +206,20 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 				std::cout << "\"" << field_decl_annotation_info.json_field_alias << "\", ";
 				free(field_decl_annotation_info.json_field_alias);
 			}
+			if(FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
+				CXType field_type_tmp = clang_getArrayElementType(field_type);
+				std::cout << std::dec << clang_getArraySize(field_type_tmp) << ", ";
+			}
 			if(FIELD_DECL_TYPE_VARIABLE == field_decl_type) {
 				std::cout << "&";
 			}
 			std::cout << "value->"<< field_name_cstr << ", ";
 			if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
-			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {
+			   FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type ||
+			   FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
 				std::cout << "value->"<< field_name_cstr << "_count, ";
-				if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type) {
+				if(FIELD_DECL_TYPE_VARIABLE_ARRAY == field_decl_type ||
+				   FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
 					std::cout << std::dec << clang_getArraySize(field_type) << ", ";
 				}
 				else if(FIELD_DECL_TYPE_POINTER_TO_VARIABLE_ARRAY == field_decl_type) {

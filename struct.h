@@ -9,6 +9,10 @@ struct ritesh_t {
 	char char003_count __attribute__((annotate("no-marshal")));
 	char *char004 __attribute__((annotate("pointer-to-array"))) __attribute__((annotate("omit-empty")));
 	char char004_count __attribute__((annotate("no-marshal")));
+	char char005[9][13] __attribute__((annotate("omit-empty")));
+	char char005_count __attribute__((annotate("no-marshal")));
+	char (*char006)[14] __attribute__((annotate("omit-empty")));
+	char char006_count __attribute__((annotate("no-marshal")));
 
 	struct1_t struct001 __attribute__((annotate("add-double-quotes")));
 	struct1_t *struct002 __attribute__((annotate("omit-empty")));
