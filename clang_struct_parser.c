@@ -76,12 +76,12 @@ static CXChildVisitResult visitAnnotateAttr(CXCursor cursor,
 				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_BOOLEAN);
 			break;
 		}
-		if(0 == strcmp("dont-add-double-quotes", annotatin_cstr)) {
+		if(0 == strcmp("dont-add-double-quotes", annotatin_cstr)) { /* Note: use with caution to avoid json breaks */
 			field_decl_annotation_info->bitmap_field_annotation_attribute |=
 				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_ADD_DOUBLE_QUOTES);
 			break;
 		}
-		if(0 == strcmp("dont-json-escape", annotatin_cstr)) {
+		if(0 == strcmp("dont-json-escape", annotatin_cstr)) { /* Note: use with caution to avoid json breaks */
 			field_decl_annotation_info->bitmap_field_annotation_attribute |=
 				(1 << BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_JSON_ESCAPE);
 			break;
