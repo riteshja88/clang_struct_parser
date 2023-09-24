@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <clang-c/Index.h>
+#include <field_annotation.h>
 
 static const char *g_CXType_to_FunctionCallMapping[500]; // one big value chosen without digging in much deep
 
@@ -18,16 +19,6 @@ static void init_g_CXType_to_FunctionCallMapping() {
 	g_CXType_to_FunctionCallMapping[CXType_Typedef] = "json_marshal_"; /* name of struct type will get added to this prefix */
 	g_CXType_to_FunctionCallMapping[CXType_Char_S] = "json_marshal_char";
 }
-
-enum {
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_NO_MARSHAL = 0,
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_OMIT_EMPTY = 1,
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_POINTER_TO_ARRAY = 2,
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_ADD_DOUBLE_QUOTES = 3,
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_BOOLEAN = 4,
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_ADD_DOUBLE_QUOTES = 5,
-	BITPOS_FIELD_ANNOTATION_ATTRIBUTE_DONT_JSON_ESCAPE = 6,
-};
 
 typedef struct {
 	int bitmap_field_annotation_attribute;
@@ -204,10 +195,12 @@ static CXChildVisitResult visitFieldDecl(CXCursor cursor,
 					  << "post_data_temp_ptr, ";
 
 			if(NULL == field_decl_annotation_info.json_field_alias) {
-				std::cout << "\"" << field_name_cstr << "\", ";
+				std::cout << "\"" << field_name_cstr << "\", "
+						  << std::dec << strlen(field_name_cstr) << " /* key_len */, ";
 			}
 			else {
-				std::cout << "\"" << field_decl_annotation_info.json_field_alias << "\", ";
+				std::cout << "\"" << field_decl_annotation_info.json_field_alias << "\", "
+						  << std::dec << strlen(field_decl_annotation_info.json_field_alias) << " /* key_len */, ";
 				free(field_decl_annotation_info.json_field_alias);
 			}
 			if(FIELD_DECL_TYPE_VARIABLE_2D_ARRAY == field_decl_type) {
@@ -266,8 +259,8 @@ static CXChildVisitResult visitStructDecl(CXCursor cursor,
 
 	CXString struct_name = clang_getCursorSpelling(cursor);
 	const char * const struct_name_cstr = clang_getCString(struct_name);
-	std::cout << "void json_marshal_" << struct_name_cstr << "(char **post_data_temp_ptr, const char key[], const struct " << struct_name_cstr << " *value, int *precede_by_comma, int bitmap_field_annotation_attribute);" << std::endl; // function declaration
-	std::cout << "void json_marshal_" << struct_name_cstr << "(char ** const post_data_temp_ptr, const char key[], const struct " << struct_name_cstr << " * const value, int * const precede_by_comma, const int bitmap_field_annotation_attribute)" << std::endl; // function definition
+	std::cout << "void json_marshal_" << struct_name_cstr << "(char **post_data_temp_ptr, const char key[], int key_len, const struct " << struct_name_cstr << " *value, int *precede_by_comma, int bitmap_field_annotation_attribute);" << std::endl; // function declaration
+	std::cout << "void json_marshal_" << struct_name_cstr << "(char ** const post_data_temp_ptr, const char key[], const int key_len, const struct " << struct_name_cstr << " * const value, int * const precede_by_comma, const int bitmap_field_annotation_attribute)" << std::endl; // function definition
 	std::cout << "{" << std::endl;
 	// Visit the struct's children to find its members
 	const int rc = clang_visitChildren(cursor,
